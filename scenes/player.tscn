@@ -1,4 +1,4 @@
-[gd_scene load_steps=68 format=3 uid="uid://db2jfjvgq7lto"]
+[gd_scene load_steps=69 format=3 uid="uid://db2jfjvgq7lto"]
 
 [ext_resource type="Script" path="res://scripts/player.gd" id="1_t1fhv"]
 [ext_resource type="Texture2D" uid="uid://1ugod5urxjgk" path="res://art/Factions/Knights/Troops/Warrior/Warrior_Blue.png" id="2_fcoti"]
@@ -124,27 +124,27 @@ region = Rect2(768, 576, 192, 192)
 atlas = ExtResource("2_fcoti")
 region = Rect2(960, 576, 192, 192)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_jfcgk"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_mwdxq"]
 atlas = ExtResource("2_fcoti")
 region = Rect2(0, 384, 192, 192)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_vstj3"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_yel6o"]
 atlas = ExtResource("2_fcoti")
 region = Rect2(192, 384, 192, 192)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_lkipy"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_fgkaq"]
 atlas = ExtResource("2_fcoti")
 region = Rect2(384, 384, 192, 192)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_q246g"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_md6cr"]
 atlas = ExtResource("2_fcoti")
 region = Rect2(576, 384, 192, 192)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_1lj1t"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_5xatx"]
 atlas = ExtResource("2_fcoti")
 region = Rect2(768, 384, 192, 192)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_unep7"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_x2qv3"]
 atlas = ExtResource("2_fcoti")
 region = Rect2(960, 384, 192, 192)
 
@@ -371,22 +371,22 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_jfcgk")
+"texture": SubResource("AtlasTexture_mwdxq")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_vstj3")
+"texture": SubResource("AtlasTexture_yel6o")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_lkipy")
+"texture": SubResource("AtlasTexture_fgkaq")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_q246g")
+"texture": SubResource("AtlasTexture_md6cr")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_1lj1t")
+"texture": SubResource("AtlasTexture_5xatx")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_unep7")
+"texture": SubResource("AtlasTexture_x2qv3")
 }],
 "loop": true,
 "name": &"attack_right_top",
@@ -487,18 +487,50 @@ animations = [{
 }]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_ksas6"]
-radius = 17.0
+radius = 8.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_sylwp"]
+radius = 29.0
 
 [node name="player" type="CharacterBody2D"]
+collision_layer = 3
 script = ExtResource("1_t1fhv")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 y_sort_enabled = true
-position = Vector2(0, -23)
+position = Vector2(0, 7)
+scale = Vector2(0.572917, 0.572917)
 sprite_frames = SubResource("SpriteFrames_jwofw")
-animation = &"idle"
-frame_progress = 0.699395
+animation = &"attack_right_top"
+frame_progress = 0.297095
+offset = Vector2(0, -39)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 y_sort_enabled = true
+position = Vector2(0, -4)
 shape = SubResource("CircleShape2D_ksas6")
+
+[node name="player_hitbox" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="player_hitbox"]
+position = Vector2(0, -15)
+shape = SubResource("CircleShape2D_sylwp")
+
+[node name="attack_cooldown" type="Timer" parent="."]
+
+[node name="deal_attack_timer" type="Timer" parent="."]
+wait_time = 0.5
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(101, 127)
+limit_left = 0
+limit_top = 0
+limit_right = 1151
+limit_bottom = 769
+drag_horizontal_enabled = true
+drag_vertical_enabled = true
+
+[connection signal="body_entered" from="player_hitbox" to="." method="_on_player_hitbox_body_entered"]
+[connection signal="body_exited" from="player_hitbox" to="." method="_on_player_hitbox_body_exited"]
+[connection signal="timeout" from="attack_cooldown" to="." method="_on_attack_cooldown_timeout"]
+[connection signal="timeout" from="deal_attack_timer" to="." method="_on_deal_attack_timer_timeout"]

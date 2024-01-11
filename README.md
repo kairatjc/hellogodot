@@ -8,10 +8,10 @@ I am completely noob in game development and GDScripts, everything I do here wou
 # Iteration 1: MVP
 just starting stuff
 
+- [x] Player can walk and dash
 - [ ] Player have attack, hp, speed and stamina stats
 - [ ] Two set of equipment - starting and advanced
 - [ ] Player will have light and heavy attack
-- [ ] Player can walk, sprint, and dash
 - [ ] Base with merchant that sell advanced equipment
 - [ ] There will 2 arenas with two bosses and two types of mini enemies
 - [ ] Loot would be gold

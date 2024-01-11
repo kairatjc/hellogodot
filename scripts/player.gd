@@ -1,83 +1,109 @@
 extends CharacterBody2D
 
-const speed = 300
+var speed = 0
+var move_direction = Vector2(0,0)
+var walking_speed: float = 200.0
+var dash_distance: float = 100.0
+var dash_cooldown: float = 1.0
+var can_dash: bool = true
+var dash_timer: float = 0.0
+var cooldown_timer: float = 0.0
+
+var enemy_in_attack_range = false
+var enemy_attack_cooldown = true
+var health = 100
+var player_is_alive = true
+var attack_ip = false
 
 func _physics_process(delta):
-	var input_vector = Vector2.ZERO
-	input_vector.x = Input.get_action_strength("ui_right") - Input.get_action_strength("ui_left")
-	input_vector.y = Input.get_action_strength("ui_down") - Input.get_action_strength("ui_up")
-	input_vector = input_vector.normalized()
+	if dash_timer > 0.0:
+		dash_timer -= delta
+	elif not can_dash:
+		can_dash = true
+	movementLoop(delta)
+	enemy_attack()
+	attack()
 	
-	if input_vector:
-		velocity = input_vector * speed
+	if health <= 0:
+		player_is_alive = false # dead
+		health = 0
+		$AnimatedSprite2D.play("dead")
+		self.queue_free()
+
+func _process(delta):
+	animationLoop()
+
+func movementLoop(delta):
+	move_direction = Vector2(
+		int(Input.is_action_pressed("Right")) - int(Input.is_action_pressed("Left")),
+		int(Input.is_action_pressed("Down")) - int(Input.is_action_pressed("Up"))
+	).normalized()
+
+	if move_direction != Vector2.ZERO:
+		if Input.is_action_pressed("Dash") and can_dash and cooldown_timer <= 0.0:
+			dash()
+		else:
+			velocity = move_direction * walking_speed
 	else:
-		velocity = input_vector
+		velocity = Vector2.ZERO
+
 	move_and_slide()
 
+	if cooldown_timer > 0.0:
+		cooldown_timer -= delta
 
-"""
-var current_dir = "none"
+func dash():
+	velocity = move_direction * dash_distance
+	dash_timer = 0.1
+	cooldown_timer = dash_cooldown
+	can_dash = false
+	position += velocity
 
-func _ready():
-	$AnimatedSprite2D.play("idle")
-
-func _physics_process(delta):
-	player_movement(delta)
-
-func player_movement(delta):
-	if Input.is_action_pressed("ui_right") or Input.is_physical_key_pressed (KEY_D):
-		current_dir = "right"
-		play_anim(1)
-		velocity.x = speed
-		velocity.y = 0
-	elif Input.is_action_pressed("ui_left") or Input.is_physical_key_pressed (KEY_A):
-		current_dir = "left"
-		play_anim(1)
-		velocity.x = -speed
-		velocity.y = 0
-	elif Input.is_action_pressed("ui_down") or Input.is_physical_key_pressed (KEY_S):
-		current_dir = "down"
-		play_anim(1)
-		velocity.y = speed
-		velocity.x = 0
-	elif Input.is_action_pressed("ui_up") or Input.is_physical_key_pressed (KEY_W):
-		current_dir = "up"
-		play_anim(1)
-		velocity.y = -speed
-		velocity.x = 0
-	else:
-		play_anim(0)
-		velocity.y = 0
-		velocity.x = 0
-	move_and_slide()
-
-func play_anim(movement):
-	var dir = current_dir
+func animationLoop():
 	var anim = $AnimatedSprite2D
-	
-	if dir == "right":
-		anim.flip_h = false
-		if movement == 1:
-			anim.play("running")
-		elif movement == 0:
+	if move_direction == Vector2(0, 0):
+		if attack_ip == false:
 			anim.play("idle")
-	if dir == "left":
-		anim.flip_h = true
-		if movement == 1:
-			anim.play("running")
-		elif movement == 0:
-			anim.play("idle")
-	if dir == "down":
-		anim.flip_h = false
-		if movement == 1:
-			anim.play("running")
-		elif movement == 0:
-			anim.play("idle")
-	if dir == "up":
-		anim.flip_h = true
-		if movement == 1:
-			anim.play("running")
-		elif movement == 0:
-			anim.play("idle")
+		else:
+			anim.play("attack_right_top")
+	else:
+		anim.play("running")
+		if move_direction.x == 0:
+			anim.flip_h = move_direction.y < 0
+		else:
+			anim.flip_h = move_direction.x < 0
 
-"""
+
+func _on_player_hitbox_body_entered(body):
+	if body.has_method("enemy"):
+		enemy_in_attack_range = true
+
+
+func _on_player_hitbox_body_exited(body):
+	if body.has_method("enemy"):
+		enemy_in_attack_range = false
+
+func enemy_attack():
+	if enemy_in_attack_range and enemy_attack_cooldown:
+		health = health - 20
+		enemy_attack_cooldown = false
+		$attack_cooldown.start()
+
+func _on_attack_cooldown_timeout():
+	enemy_attack_cooldown = true
+
+func player():
+	pass
+
+func attack():
+	var dir = move_direction
+	if Input.is_action_pressed("Attack"):
+		Global.player_current_attack = true
+		attack_ip = true
+		$AnimatedSprite2D.play("attack_right_top")
+		$deal_attack_timer.start()
+
+func _on_deal_attack_timer_timeout():
+	$deal_attack_timer.stop()
+	Global.player_current_attack = false
+	attack_ip = false
